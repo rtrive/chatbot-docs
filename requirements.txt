@@ -7,3 +7,4 @@ numpy
 Pyarrow
 langchain_openai
 chromadb
+sentence-transformers
