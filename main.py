@@ -2,6 +2,7 @@ import requests
 import numpy as np
 import pandas as pd
 from openai import OpenAI
+from os import environ
 from bs4 import BeautifulSoup
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
@@ -10,7 +11,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.chroma import Chroma
 from numpy.linalg import norm
 
-OPEN_AI_KEY = "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"
+OPEN_AI_KEY = environ.get('OPEN_AI_KEY')
 
 
 client = OpenAI(api_key=OPEN_AI_KEY)
