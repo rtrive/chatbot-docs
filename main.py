@@ -1,20 +1,17 @@
 import requests
-import numpy as np
-import pandas as pd
-from openai import OpenAI
-from os import environ
 from bs4 import BeautifulSoup
 from langchain_openai import ChatOpenAI
-from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.prompts.prompt import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.chroma import Chroma
-from numpy.linalg import norm
+from os import environ
+
 
 OPEN_AI_KEY = environ.get('OPEN_AI_KEY')
+environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
-client = OpenAI(api_key=OPEN_AI_KEY)
 ####################################################################
 # load documents
 ####################################################################
@@ -54,7 +51,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 texts = text_splitter.create_documents([text])
 
 # define the embeddings model
-embeddings = OpenAIEmbeddings(openai_api_key=OPEN_AI_KEY)
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 # use the text chunks and the embeddings model to fill our vector store
 db = Chroma.from_documents(texts, embeddings)
