@@ -1,6 +1,5 @@
-import requests
-from bs4 import BeautifulSoup
-from langchain_openai import ChatOpenAI
+import chromadb
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.prompts.prompt import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -8,61 +7,19 @@ from langchain.vectorstores.chroma import Chroma
 from os import environ
 
 
-OPEN_AI_KEY = environ.get('OPEN_AI_KEY')
+OPEN_AI_KEY = environ.get("OPEN_AI_KEY")
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
-
-####################################################################
-# load documents
-####################################################################
-# URL of the Wikipedia page to scrape
-url = "https://en.wikipedia.org/wiki/Prime_Minister_of_the_United_Kingdom"
-
-# Send a GET request to the URL
-response = requests.get(url)
-
-# Parse the HTML content using BeautifulSoup
-soup = BeautifulSoup(response.content, "html.parser")
-
-# Find all the text on the page
-text = soup.get_text()
-text = text.replace('\n', '')
-
-# Open a new file called 'output.txt' in write mode and store the file object in a variable
-with open('output.txt', 'w', encoding='utf-8') as file:
-    # Write the string to the file
-    file.write(text)
-
-# load the document
-with open('./output.txt', encoding='utf-8') as f:
-    text = f.read()
-
-
-####################################################################
-# split text
-####################################################################
-text_splitter = RecursiveCharacterTextSplitter(
-    # Set a really small chunk size, just to show.
-    chunk_size=500,
-    chunk_overlap=100,
-    length_function=len,
+db = Chroma(
+    persist_directory="./db",
+    embedding_function=OpenAIEmbeddings(openai_api_key=OPEN_AI_KEY),
+    collection_name="uk_prime_minister_wikipedia",
 )
 
-texts = text_splitter.create_documents([text])
-
-# define the embeddings model
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-
-# use the text chunks and the embeddings model to fill our vector store
-db = Chroma.from_documents(texts, embeddings)
-
-users_question = "Who was the first Prime Minister of the UK?"
+users_question = "Who is the Rishi Sunak?"
 
 # use our vector store to find similar text chunks
-results = db.similarity_search(
-    query=users_question,
-    k=5
-)
+results = db.similarity_search(query=users_question, k=5)
 
 ####################################################################
 # build a suitable prompt and send it
