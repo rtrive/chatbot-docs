@@ -3,7 +3,6 @@ import requests
 from bs4 import BeautifulSoup
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.chroma import Chroma
 from os import environ
@@ -36,8 +35,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 
 texts = text_splitter.split_documents(data)
 
-# embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-embeddings = OpenAIEmbeddings(openai_api_key=OPEN_AI_KEY)
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 # # use the text chunks and the embeddings model to fill our vector store
 client = chromadb.PersistentClient(path="./db")
