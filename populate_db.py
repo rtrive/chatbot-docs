@@ -1,6 +1,4 @@
 import chromadb
-import requests
-from bs4 import BeautifulSoup
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
