@@ -1,9 +1,27 @@
 import chromadb
 from langchain_community.document_loaders import WebBaseLoader
-from langchain_community.embeddings import OllamaEmbeddings
+from langchain_community.embeddings import OllamaEmbeddings, HuggingFaceEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.chroma import Chroma
 from os import environ
+from time import sleep
+
+OPENAI = "openai"
+OLLAMA = "ollama"
+HUGGINGFACE = "huggingface"
+OPEN_AI_KEY = environ["OPENAI_API_KEY"]
+
+
+
+def set_embeddings (type, model=None):
+    if type == OLLAMA:
+        return OllamaEmbeddings(model=model)
+    elif type == OPENAI:
+        return OpenAIEmbeddings()
+    elif type == HUGGINGFACE:
+        return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    pass
 
 
 environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -20,7 +38,6 @@ url = "https://en.wikipedia.org/wiki/Prime_Minister_of_the_United_Kingdom"
 loaders = WebBaseLoader(url)
 data = loaders.load()
 
-
 ####################################################################
 # split text
 ####################################################################
@@ -33,7 +50,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 
 texts = text_splitter.split_documents(data)
 
-embeddings = OllamaEmbeddings(model="mistral")
+embeddings = set_embeddings(type=HUGGINGFACE)
 
 # # use the text chunks and the embeddings model to fill our vector store
 client = chromadb.PersistentClient(path="./db")

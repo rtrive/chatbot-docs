@@ -1,16 +1,37 @@
 from langchain_community.llms.ollama import Ollama
-from langchain_community.embeddings import OllamaEmbeddings
+from langchain_community.embeddings import OllamaEmbeddings, HuggingFaceEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.prompts.prompt import PromptTemplate
 from langchain.vectorstores.chroma import Chroma
 from os import environ
 
 
-OPEN_AI_KEY = environ.get("OPEN_AI_KEY")
+OPENAI = "openai"
+OLLAMA = "ollama"
+HUGGINGFACE = "huggingface"
+
+
+def set_embeddings(type, model=None):
+    if type == OLLAMA:
+        return OllamaEmbeddings(model=model)
+    elif type == OPENAI:
+        environ["OPENAI_API_KEY"] = (
+            "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"
+        )
+        return OpenAIEmbeddings()
+    elif type == HUGGINGFACE:
+        return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    pass
+
+
 environ["TOKENIZERS_PARALLELISM"] = "false"
+
+embeddings = set_embeddings(type=HUGGINGFACE)
+
 
 db = Chroma(
     persist_directory="./db",
-    embedding_function=OllamaEmbeddings(model="mistral"),
+    embedding_function=embeddings,
     collection_name="uk_prime_minister_wikipedia",
 )
 
