@@ -9,15 +9,13 @@ from os import environ
 OPENAI = "openai"
 OLLAMA = "ollama"
 HUGGINGFACE = "huggingface"
+OPENAI_API_KEY = environ["OPENAI_API_KEY"]
 
 
 def set_embeddings(type, model=None):
     if type == OLLAMA:
         return OllamaEmbeddings(model=model)
     elif type == OPENAI:
-        environ["OPENAI_API_KEY"] = (
-            "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"
-        )
         return OpenAIEmbeddings()
     elif type == HUGGINGFACE:
         return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
