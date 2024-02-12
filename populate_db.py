@@ -1,6 +1,6 @@
 import chromadb
 from langchain_community.document_loaders import WebBaseLoader
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import OllamaEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.chroma import Chroma
 from os import environ
@@ -33,7 +33,7 @@ text_splitter = RecursiveCharacterTextSplitter(
 
 texts = text_splitter.split_documents(data)
 
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+embeddings = OllamaEmbeddings(model="mistral")
 
 # # use the text chunks and the embeddings model to fill our vector store
 client = chromadb.PersistentClient(path="./db")
