@@ -1,22 +1,39 @@
-import chromadb
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.llms.ollama import Ollama
+from langchain_community.embeddings import OllamaEmbeddings, HuggingFaceEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.prompts.prompt import PromptTemplate
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.chroma import Chroma
 from os import environ
 
 
-OPEN_AI_KEY = environ.get("OPEN_AI_KEY")
+OPENAI = "openai"
+OLLAMA = "ollama"
+HUGGINGFACE = "huggingface"
+OPENAI_API_KEY = environ["OPENAI_API_KEY"]
+
+
+def set_embeddings(type, model=None):
+    if type == OLLAMA:
+        return OllamaEmbeddings(model=model)
+    elif type == OPENAI:
+        return OpenAIEmbeddings()
+    elif type == HUGGINGFACE:
+        return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    pass
+
+
 environ["TOKENIZERS_PARALLELISM"] = "false"
+
+embeddings = set_embeddings(type=HUGGINGFACE)
+
 
 db = Chroma(
     persist_directory="./db",
-    embedding_function=OpenAIEmbeddings(openai_api_key=OPEN_AI_KEY),
+    embedding_function=embeddings,
     collection_name="uk_prime_minister_wikipedia",
 )
 
-users_question = "Who is the Rishi Sunak?"
+users_question = "Who is the present Prime Minister of the UK?"
 
 # use our vector store to find similar text chunks
 results = db.similarity_search(query=users_question, k=5)
@@ -25,7 +42,7 @@ results = db.similarity_search(query=users_question, k=5)
 # build a suitable prompt and send it
 ####################################################################
 # define the LLM you want to use
-llm = ChatOpenAI(temperature=0, openai_api_key=OPEN_AI_KEY)
+llm = Ollama(model="mistral")
 
 # define the prompt template
 template = """
@@ -46,4 +63,4 @@ prompt_template = PromptTemplate.from_template(template).format(
     context=results, users_question=users_question
 )
 
-print(llm.invoke(prompt_template).content)
+print(llm.invoke(prompt_template))
