@@ -9,7 +9,6 @@ from langchain.text_splitter import (
 )
 from langchain.vectorstores.chroma import Chroma
 from os import environ
-from time import sleep
 
 OPENAI = "openai"
 OLLAMA = "ollama"
@@ -47,7 +46,7 @@ text_splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=100)
 
 texts = text_splitter.split_documents(pages)
 
-embeddings = set_embeddings(type=OPENAI)
+embeddings = set_embeddings(type=HUGGINGFACE)
 
 # # use the text chunks and the embeddings model to fill our vector store
 client = chromadb.PersistentClient(path="./db")

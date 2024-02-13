@@ -24,7 +24,7 @@ def set_embeddings(type, model=None):
 
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
-embeddings = set_embeddings(type=OPENAI)
+embeddings = set_embeddings(type=HUGGINGFACE)
 
 
 db = Chroma(
@@ -33,17 +33,16 @@ db = Chroma(
     collection_name="uk_prime_minister_wikipedia_pdf",
 )
 
-users_question = "Prime Minister of the UK?"
+users_question = "Who was the first Prime Minister of the UK?"
 
 # use our vector store to find similar text chunks
-results = db.similarity_search(query=users_question, k=5)
+results = db.similarity_search(query=users_question, k=2)
 
 ####################################################################
 # build a suitable prompt and send it
 ####################################################################
 # define the LLM you want to use
-llm = Ollama(model="llama2")
-llm = OpenAI(api_key=OPENAI_API_KEY)
+llm = Ollama(model="llama2", temperature=0.5)
 
 
 # define the prompt template
