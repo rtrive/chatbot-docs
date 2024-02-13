@@ -1,6 +1,6 @@
 from langchain_community.llms.ollama import Ollama
 from langchain_community.embeddings import OllamaEmbeddings, HuggingFaceEmbeddings
-from langchain_openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings, OpenAI
 from langchain.prompts.prompt import PromptTemplate
 from langchain.vectorstores.chroma import Chroma
 from os import environ
@@ -24,16 +24,16 @@ def set_embeddings(type, model=None):
 
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
-embeddings = set_embeddings(type=HUGGINGFACE)
+embeddings = set_embeddings(type=OPENAI)
 
 
 db = Chroma(
     persist_directory="./db",
     embedding_function=embeddings,
-    collection_name="uk_prime_minister_wikipedia",
+    collection_name="uk_prime_minister_wikipedia_pdf",
 )
 
-users_question = "Who is the present Prime Minister of the UK?"
+users_question = "Prime Minister of the UK?"
 
 # use our vector store to find similar text chunks
 results = db.similarity_search(query=users_question, k=5)
@@ -42,13 +42,12 @@ results = db.similarity_search(query=users_question, k=5)
 # build a suitable prompt and send it
 ####################################################################
 # define the LLM you want to use
-llm = Ollama(model="mistral")
+llm = Ollama(model="llama2")
+llm = OpenAI(api_key=OPENAI_API_KEY)
+
 
 # define the prompt template
 template = """
-You are a chat bot who loves to help people! Given the following context sections, answer the
-question using only the given context. If you are unsure and the answer is not
-explicitly writting in the documentation, say "Sorry, I don't know how to help with that."
 
 Context sections:
 {context}
