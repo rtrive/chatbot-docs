@@ -24,7 +24,9 @@ def set_embeddings(type, model=None):
     elif type == HUGGINGFACE:
         model_kwargs = {"device": "cpu", "trust_remote_code": False}
         local_model_path = "./embeddings/all-MiniLM-L6-v2"
-        return HuggingFaceEmbeddings(model_name=local_model_path, model_kwargs=model_kwargs)
+        return HuggingFaceEmbeddings(
+            model_name=local_model_path, model_kwargs=model_kwargs
+        )
     pass
 
 

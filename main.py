@@ -1,66 +1,33 @@
-from langchain_community.llms.ollama import Ollama
-from langchain_community.embeddings import OllamaEmbeddings, HuggingFaceEmbeddings
-from langchain_openai import OpenAIEmbeddings, OpenAI
-from langchain.prompts.prompt import PromptTemplate
-from langchain.vectorstores.chroma import Chroma
+from openai import OpenAI
 from os import environ
-
-
-OPENAI = "openai"
-OLLAMA = "ollama"
-HUGGINGFACE = "huggingface"
-OPENAI_API_KEY = environ["OPENAI_API_KEY"]
-
-
-def set_embeddings(type, model=None):
-    if type == OLLAMA:
-        return OllamaEmbeddings(model=model)
-    elif type == OPENAI:
-        return OpenAIEmbeddings()
-    elif type == HUGGINGFACE:
-        model_kwargs = {"device": "cpu", "trust_remote_code": False}
-        local_model_path = "./embeddings/all-MiniLM-L6-v2"
-        return HuggingFaceEmbeddings(model_name=local_model_path, model_kwargs=model_kwargs)
-    pass
-
+import streamlit as st
 
 environ["TOKENIZERS_PARALLELISM"] = "false"
 
-embeddings = set_embeddings(type=HUGGINGFACE)
 
+with st.sidebar:
+    openai_api_key = st.text_input("OpenAI API Key", key="chatbot_api_key", type="password")
+    "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
+    "[View the source code](https://github.com/streamlit/llm-examples/blob/main/Chatbot.py)"
+    "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
 
-db = Chroma(
-    persist_directory="./db",
-    embedding_function=embeddings,
-    collection_name="uk_prime_minister_wikipedia_pdf",
-)
+client = OpenAI(api_key=openai_api_key)
 
-users_question = "Who is the first Prime Minister of the UK?"
+st.title("💬 Chatbot") 
+if "messages" not in st.session_state:
+    st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
 
-# use our vector store to find similar text chunks
-results = db.similarity_search(query=users_question, k=2)
+for msg in st.session_state.messages:
+    st.chat_message(msg["role"]).write(msg["content"])
 
-####################################################################
-# build a suitable prompt and send it
-####################################################################
-# define the LLM you want to use
-llm = Ollama(model="llama2", temperature=0.5)
+if prompt := st.chat_input():
+    if not openai_api_key:
+        st.info("Please add your OpenAI API key to continue.")
+        st.stop()
 
-
-# define the prompt template
-template = """
-
-Context sections:
-{context}
-
-Question:
-{users_question}
-
-Answer:
-"""
-
-prompt_template = PromptTemplate.from_template(template).format(
-    context=results, users_question=users_question
-)
-
-print(llm.invoke(prompt_template))
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.chat_message("user").write(prompt)
+    response = client.chat.completions.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
+    msg = response.choices[0].message
+    st.session_state.messages.append(msg)
+    st.chat_message("assistant").write(msg.content)
